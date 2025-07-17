@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-M" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sofi - Sua Amiga IA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;700&display=swap');
+      body {
+        font-family: 'Quicksand', sans-serif;
+        transition: background-color 0.5s ease-in-out;
+      }
+      
+      @keyframes drift-and-pulse {
+        0%, 100% {
+          transform: translateY(0px) scale(0.98) rotate(var(--tw-rotate));
+          opacity: 0.7;
+        }
+        50% {
+          transform: translateY(-20px) scale(1.02) rotate(var(--tw-rotate));
+          opacity: 1;
+        }
+      }
+      .animate-drift-and-pulse {
+        animation: drift-and-pulse 10s infinite ease-in-out;
+      }
+
+      @keyframes sparkle {
+        0% { transform: scale(0) rotate(0deg); opacity: 0.5; }
+        50% { transform: scale(1.5) rotate(180deg); opacity: 1; }
+        100% { transform: scale(0) rotate(360deg); opacity: 0; }
+      }
+      .animate-sparkle {
+        animation: sparkle 1.5s ease-in-out infinite;
+        position: absolute;
+        text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #ff89b4;
+      }
+
+      @keyframes subtle-bob {
+        0%, 100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-3px);
+        }
+      }
+      .animate-subtle-bob {
+        animation: subtle-bob 3s ease-in-out infinite;
+      }
+
+      @keyframes pulse-once {
+        0% { transform: scale(1.05); }
+        50% { transform: scale(1.2); }
+        100% { transform: scale(1.05); }
+      }
+      .animate-pulse-once {
+        animation: pulse-once 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+
+      /* Psychologist Mode Styles */
+      body.psychologist-mode {
+          background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%); /* sky-50 to indigo-100 */
+      }
+      main.psychologist-mode {
+          background-color: rgba(255, 255, 255, 0.9);
+          backdrop-filter: blur(8px);
+      }
+      @keyframes gentle-float {
+          0%, 100% { transform: translateY(0) rotate(var(--tw-rotate)); opacity: 0.6; }
+          50% { transform: translateY(-20px) rotate(var(--tw-rotate)); opacity: 0.8; }
+      }
+      .animate-gentle-float {
+          animation: gentle-float 10s infinite ease-in-out;
+      }
+
+      /* --- New Animations for "Cuteness" --- */
+
+      /* 1. Pop-in for Sofi's messages */
+      @keyframes pop-in {
+          0% {
+              opacity: 0;
+              transform: scale(0.8) translateY(10px);
+          }
+          100% {
+              opacity: 1;
+              transform: scale(1) translateY(0);
+          }
+      }
+      .animate-pop-in {
+          animation: pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+      }
+
+      /* 2. Cute "is typing" animation */
+      @keyframes cute-bounce {
+          0%, 80%, 100% {
+              transform: scale(0.8) translateY(0);
+              opacity: 0.8;
+          }
+          40% {
+              transform: scale(1.1) translateY(-8px);
+              opacity: 1;
+          }
+      }
+      .animate-cute-bounce > span {
+          display: inline-block;
+          animation: cute-bounce 1.4s infinite ease-in-out both;
+      }
+      .animate-cute-bounce > span:nth-child(1) { animation-delay: -0.32s; }
+      .animate-cute-bounce > span:nth-child(2) { animation-delay: -0.16s; }
+      .animate-cute-bounce > span:nth-child(3) { animation-delay: 0s; }
+
+
+      /* 3. Gentle wiggle for the main avatar on load */
+      @keyframes gentle-wiggle {
+          0%, 100% { transform: rotate(-2deg); }
+          50% { transform: rotate(2deg); }
+      }
+      .animate-gentle-wiggle {
+          animation: gentle-wiggle 1s infinite ease-in-out;
+      }
+      
+      /* Breathing Exercise & Anxiety Tool Animations */
+      @keyframes fade-in {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      .animate-fade-in {
+        animation: fade-in 0.5s ease-out forwards;
+      }
+      
+      @keyframes pulse-slow {
+        0%, 100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+        50% {
+            transform: scale(1.03);
+        }
+      }
+      .animate-pulse-slow {
+          animation: pulse-slow 2.5s ease-in-out infinite;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
+    "react/": "https://esm.sh/react@^19.1.0/",
+    "react": "https://esm.sh/react@^19.1.0",
+    "@google/genai": "https://esm.sh/@google/genai@^1.10.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-pink-50">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
