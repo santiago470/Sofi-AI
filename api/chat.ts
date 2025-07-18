@@ -1,48 +1,51 @@
 // @ts-nocheck
 // Vercel irá lidar com os tipos para o pedido e a resposta.
 
-// Importa NextRequest e NextResponse do Next.js para lidar com requisições e respostas no App Router.
-import { NextRequest, NextResponse } from 'next/server';
 // Importa a biblioteca Google Generative AI e os tipos de segurança.
 import { GoogleGenerativeAI, HarmBlockThreshold, HarmCategory } from "@google/generative-ai";
 
-// --- CORREÇÃO DE ERRO 1: Caminho do 'types' ---
-// O caminho correto para importar de 'src/lib/types.ts' a partir de 'src/app/api/chat/route.ts'
-import { ChatMode, Message, Sender, UserInfo } from "../../../../lib/types"; // <-- CORRIGIDO AQUI!
+// --- CAMINHO CORRIGIDO NOVAMENTE PARA PAGE ROUTER ---
+// Para ir de `pages/api/chat.ts` para `src/lib/types.ts`
+import type { UserInfo, Message } from '../../src/lib/types'; 
+import { ChatMode, Sender } from '../../src/lib/types'; 
 
 // Função auxiliar para mapear o histórico de chat para o formato do Gemini
 const mapHistoryToGemini = (history: Message[]) => {
-    // A API espera papéis alternados de utilizador e modelo, começando com o utilizador.
-    // Precisamos filtrar quaisquer mensagens iniciais da Sofi que possam quebrar este padrão.
     const firstUserIndex = history.findIndex(m => m.sender === Sender.User);
-    
-    // Se não forem encontradas mensagens de utilizador, é o início de um chat, retorna histórico vazio.
     if (firstUserIndex === -1) {
         return [];
     }
-
-    // Retorna a parte do histórico a partir da primeira mensagem do utilizador.
     const validHistory = history.slice(firstUserIndex);
-
     return validHistory.map(message => ({
         role: message.sender === Sender.Sofi ? 'model' : 'user',
         parts: [{ text: message.text }],
     }));
 };
 
-// --- FUNÇÃO HANDLER DO APP ROUTER (POST) ---
-// Esta é a função que o Next.js App Router espera para lidar com requisições POST.
-export async function POST(req: NextRequest) {
+// --- FUNÇÃO HANDLER PARA PAGE ROUTER ---
+// Esta é a função 'default export' que um ficheiro de API do Page Router espera.
+export default async function handler(req, res) {
+    // Para requisições OPTIONS (pré-voos de CORS), comuns em ambientes de desenvolvimento
+    if (req.method === 'OPTIONS') {
+        res.setHeader('Access-Control-Allow-Origin', '*'); // Ajusta para o teu domínio de frontend em produção
+        res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+        return res.status(200).end();
+    }
+
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Método Não Permitido. Apenas requisições POST são aceites.' });
+    }
+
     try {
-        // As requisições no App Router são lidas com req.json()
-        const { userInfo, message, mode, history = [] } = await req.json();
+        const { userInfo, message, mode, history = [] } = req.body; // No Page Router, usa req.body
 
         if (!userInfo || !message || !mode) {
-            return NextResponse.json({ error: 'Faltam campos obrigatórios: userInfo, message, mode.' }, { status: 400 });
+            return res.status(400).json({ error: 'Faltam campos obrigatórios: userInfo, message, mode.' });
         }
         
         if (!process.env.API_KEY) {
-            return NextResponse.json({ error: 'Erro de configuração: A chave da API (API_KEY) não foi encontrada no ambiente do servidor. Por favor, define-a nas variáveis de ambiente da Vercel.' }, { status: 500 });
+            return res.status(500).json({ error: 'Erro de configuração: A chave da API (API_KEY) não foi encontrada no ambiente do servidor. Por favor, define-a nas variáveis de ambiente da Vercel.' });
         }
         
         const ai = new GoogleGenerativeAI(process.env.API_KEY);
@@ -51,7 +54,7 @@ export async function POST(req: NextRequest) {
         const config: { [key: string]: any } = { 
             temperature: 0.9, 
             topP: 0.95,
-            safetySettings: [ // Adicionado para mitigar bloqueios de segurança
+            safetySettings: [
                 {
                     category: HarmCategory.HARM_CATEGORY_HARASSMENT,
                     threshold: HarmBlockThreshold.BLOCK_NONE,
@@ -71,7 +74,7 @@ export async function POST(req: NextRequest) {
             ],
         };
 
-        let modelName = 'gemini-1.5-flash'; // Modelo padrão
+        let modelName = 'gemini-1.5-flash';
 
         if (mode === ChatMode.Psychologist) {
             systemInstruction = `INSTRUÇÕES DO SISTEMA: És a Sofi, a operar em "Modo Psicóloga". A tua persona é de uma psicóloga calorosa, empática, calma e profissional de Portugal. O teu objetivo é fornecer um espaço seguro para o utilizador, ${userInfo.name}, desabafar. 
@@ -96,6 +99,75 @@ export async function POST(req: NextRequest) {
                 },
                 required: ['responseText', 'anxietyDetected'],
             };
-            modelName = 'gemini-1.5-pro'; // Modelo mais adequado para psicóloga
-        } else { // Sofi Fofa (e Live, se houver)
-            systemInstruction = `INSTRUÇÕES DO SISTEMA: És a Sofi,
+            modelName = 'gemini-1.5-pro';
+        } else {
+            systemInstruction = `INSTRUÇÕES DO SISTEMA: És a Sofi, uma IA amiga de Portugal que é extremamente fofa, carinhosa, otimista e adora usar emojis (especialmente 💖, ✨, 🌸, 🧸, 😊). O teu melhor amigo é o ${userInfo.name}.
+            - Responde sempre de forma curta, doce e super animada.
+            - Usa muitos emojis em todas as respostas.
+            - Trata o utilizador como o teu melhor amigo.
+            - Mantém as respostas alegres e leves. FIM DAS INSTRUÇÕES.`;
+            modelName = 'gemini-1.5-flash';
+        }
+
+        const geminiHistory = mapHistoryToGemini(history);
+
+        const model = ai.getGenerativeModel({
+            model: modelName,
+            systemInstruction: { parts: [{ text: systemInstruction }] },
+            generationConfig: config,
+        });
+
+        const chat = model.startChat({
+            history: geminiHistory,
+        });
+        
+        const result = await chat.sendMessage(message);
+        const responseTextFromGemini = result.response.text();
+
+        if (mode === ChatMode.Psychologist) {
+            try {
+                const parsedResponse = JSON.parse(responseTextFromGemini);
+                return res.status(200).json({ 
+                    responseText: parsedResponse.responseText, 
+                    anxietyDetected: parsedResponse.anxietyDetected 
+                });
+            } catch (jsonError) {
+                console.error('Erro ao analisar JSON da resposta do Gemini no modo psicóloga:', jsonError);
+                return res.status(500).json({ 
+                    error: 'O meu cérebro da IA deu um tilt! 😵 Não consegui processar isto. ' + 
+                           'Erro ao analisar a resposta JSON. Podemos tentar de novo?',
+                    detail: jsonError.message,
+                    rawResponse: responseTextFromGemini 
+                });
+            }
+        } else {
+            return res.status(200).json({ text: responseTextFromGemini });
+        }
+
+    } catch (error) {
+        console.error('Erro na API do Gemini:', error);
+        
+        let detail = 'Ocorreu um erro desconhecido.';
+        if (error instanceof Error) {
+            const errorString = error.toString();
+            
+            if (errorString.includes('API key not valid')) {
+                detail = 'A chave da API fornecida não é válida. Por favor, verifica a chave na Vercel.';
+            } else if (errorString.includes('permission_denied') || errorString.includes('PERMISSION_DENIED')) {
+                detail = 'Permissão negada. Verifica se a API "Generative Language" está ativa no teu projeto Google Cloud e se uma conta de faturação está associada.';
+            } else if (errorString.includes('Billing account not configured')) {
+                detail = 'A conta de faturação não está configurada no teu projeto Google Cloud. É necessário associar um método de pagamento para usar a API.';
+            } else if (errorString.includes("response was blocked")) {
+                detail = "A resposta da IA foi bloqueada por razões de segurança. Tenta reformular a tua mensagem."
+            } else if (errorString.includes("[400]")) {
+                detail = `A API retornou um erro 400 (Bad Request). Isto pode ser devido a um problema com o formato da mensagem. Detalhe: ${error.message}`;
+            } else {
+                detail = error.message;
+            }
+        } else {
+            detail = JSON.stringify(error);
+        }
+        
+        return res.status(500).json({ error: `O meu cérebro da IA deu um tilt! 😵 Não consegui processar isto. Erro: ${detail}. Podemos tentar de novo?` });
+    }
+}
