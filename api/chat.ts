@@ -3,9 +3,11 @@
 
 import { GoogleGenAI, HarmBlockThreshold, HarmCategory } from "@google/genai"; 
 
-// --- CORREÇÃO: Caminho do 'types' ajustado para 'api/chat.ts' para 'src/lib/types.ts' ---
-import type { UserInfo, Message } from '../src/lib/types'; // <-- Mudei aqui!
-import { ChatMode, Sender } from '../src/lib/types'; // <-- E aqui!
+// --- VERIFICAÇÃO CRÍTICA: Caminho para 'types.ts' ---
+// Este caminho é: de 'api/chat.ts' para 'src/lib/types.ts'.
+// Deve ser: ' ../src/lib/types'
+import type { UserInfo, Message } from '../src/lib/types'; // <-- ASSEGURA QUE ESTÁ ASSIM
+import { ChatMode, Sender } from '../src/lib/types'; // <-- E AQUI!
 
 // Função auxiliar para mapear o histórico de chat para o formato do Gemini
 const mapHistoryToGemini = (history: Message[]) => {
@@ -21,10 +23,7 @@ const mapHistoryToGemini = (history: Message[]) => {
 };
 
 // --- FUNÇÃO HANDLER PARA API DE VERCEL (sem Next.js Page Router) ---
-// Note que esta função é um default export simples, tal como seria para Node.js puro.
-// Vercel trata 'api/chat.ts' como '/api/chat' por convenção.
-export default async function (req, res) { // Não precisa de ser 'handler'
-    // Para requisições OPTIONS (pré-voos de CORS), comuns em ambientes de desenvolvimento
+export default async function (req, res) { 
     if (req.method === 'OPTIONS') {
         res.setHeader('Access-Control-Allow-Origin', '*'); 
         res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
