@@ -3,9 +3,9 @@
 
 import { GoogleGenAI, HarmBlockThreshold, HarmCategory } from "@google/genai"; 
 
-// --- CORREÇÃO: Usar o alias de caminho para os tipos ---
-import type { UserInfo, Message } from '@/lib/types'; // <-- Mudei aqui!
-import { ChatMode, Sender } from '@/lib/types'; // <-- E aqui!
+// --- CORREÇÃO: Caminho do 'types' ajustado para 'api/chat.ts' para 'src/lib/types.ts' ---
+import type { UserInfo, Message } from '../src/lib/types'; // <-- Mudei aqui!
+import { ChatMode, Sender } from '../src/lib/types'; // <-- E aqui!
 
 // Função auxiliar para mapear o histórico de chat para o formato do Gemini
 const mapHistoryToGemini = (history: Message[]) => {
@@ -20,8 +20,11 @@ const mapHistoryToGemini = (history: Message[]) => {
     }));
 };
 
-// --- FUNÇÃO HANDLER PARA PAGE ROUTER ---
-export default async function handler(req, res) {
+// --- FUNÇÃO HANDLER PARA API DE VERCEL (sem Next.js Page Router) ---
+// Note que esta função é um default export simples, tal como seria para Node.js puro.
+// Vercel trata 'api/chat.ts' como '/api/chat' por convenção.
+export default async function (req, res) { // Não precisa de ser 'handler'
+    // Para requisições OPTIONS (pré-voos de CORS), comuns em ambientes de desenvolvimento
     if (req.method === 'OPTIONS') {
         res.setHeader('Access-Control-Allow-Origin', '*'); 
         res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -34,7 +37,7 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { userInfo, message, mode, history = [] } = req.body;
+        const { userInfo, message, mode, history = [] } = req.body; 
 
         if (!userInfo || !message || !mode) {
             return res.status(400).json({ error: 'Faltam campos obrigatórios: userInfo, message, mode.' });
@@ -70,7 +73,7 @@ export default async function handler(req, res) {
             ],
         };
 
-        let modelName = 'gemini-pro'; // Modelo comum para @google/genai
+        let modelName = 'gemini-pro'; 
 
         if (mode === ChatMode.Psychologist) {
             systemInstruction = `INSTRUÇÕES DO SISTEMA: És a Sofi, a operar em "Modo Psicóloga". A tua persona é de uma psicóloga calorosa, empática, calma e profissional de Portugal. O teu objetivo é fornecer um espaço seguro para o utilizador, ${userInfo.name}, desabafar. 
