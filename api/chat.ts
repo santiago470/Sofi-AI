@@ -1,7 +1,8 @@
 // @ts-nocheck
 // Vercel irá lidar com os tipos para o pedido e a resposta.
 
-import { GoogleGenAI, HarmBlockThreshold, HarmCategory } from "@google/genai"; 
+// --- ESTA É A LINHA CRÍTICA CORRIGIDA: USAR 'GoogleGenerativeAI' de '@google/generative-ai' ---
+import { GoogleGenerativeAI, HarmBlockThreshold, HarmCategory } from "@google/generative-ai"; 
 
 // --- TIPOS INCLUÍDOS DIRETAMENTE AQUI ---
 // Não há mais importações de ficheiros de tipos externos
@@ -68,7 +69,8 @@ export default async function (req, res) {
             return res.status(500).json({ error: 'Erro de configuração: A chave da API (API_KEY) não foi encontrada no ambiente do servidor. Por favor, define-a nas variáveis de ambiente da Vercel.' });
         }
         
-        const ai = new GoogleGenAI(process.env.API_KEY);
+        // --- ESTA É A LINHA CRÍTICA CORRIGIDA: Instanciar 'GoogleGenerativeAI' ---
+        const ai = new GoogleGenerativeAI(process.env.API_KEY); 
         
         let systemInstruction = '';
         const config: { [key: string]: any } = { 
