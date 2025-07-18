@@ -150,11 +150,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 onChange={(e) => setInputText(e.target.value)}
                 placeholder={inputPlaceholder}
                 className={inputClasses}
-                disabled={isLoading || isConfirmationPending}
+                disabled={isLoading}
             />
             <button
                 type="submit"
-                disabled={isLoading || isConfirmationPending || !inputText.trim()}
+                disabled={isLoading || !inputText.trim()}
                 className={`${buttonClasses} ${showSendPulse ? 'animate-pulse-once' : ''}`}
             >
                 {isLoading ? (
