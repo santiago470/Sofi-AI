@@ -3,11 +3,11 @@
 
 import { GoogleGenAI, HarmBlockThreshold, HarmCategory } from "@google/genai"; 
 
-// --- VERIFICAÇÃO CRÍTICA: Caminho para 'types.ts' ---
-// Este caminho é: de 'api/chat.ts' para 'src/lib/types.ts'.
-// Deve ser: ' ../src/lib/types'
-import type { UserInfo, Message } from '../src/lib/types'; // <-- ASSEGURA QUE ESTÁ ASSIM
-import { ChatMode, Sender } from '../src/lib/types'; // <-- E AQUI!
+// --- CAMINHOS CORRIGIDOS COM '.js' PARA TIPOS ---
+// Assegura que o ficheiro 'types.ts' está em 'your-project-root/src/lib/types.ts'
+// E que o ficheiro da API está em 'your-project-root/api/chat.ts'
+import type { UserInfo, Message } from '../src/lib/types.js'; // <-- CORRIGIDO AQUI
+import { ChatMode, Sender } from '../src/lib/types.js';       // <-- E AQUI
 
 // Função auxiliar para mapear o histórico de chat para o formato do Gemini
 const mapHistoryToGemini = (history: Message[]) => {
@@ -24,6 +24,7 @@ const mapHistoryToGemini = (history: Message[]) => {
 
 // --- FUNÇÃO HANDLER PARA API DE VERCEL (sem Next.js Page Router) ---
 export default async function (req, res) { 
+    // Para requisições OPTIONS (pré-voos de CORS), comuns em ambientes de desenvolvimento
     if (req.method === 'OPTIONS') {
         res.setHeader('Access-Control-Allow-Origin', '*'); 
         res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -72,7 +73,7 @@ export default async function (req, res) {
             ],
         };
 
-        let modelName = 'gemini-pro'; 
+        let modelName = 'gemini-pro'; // Modelo comum para @google/genai
 
         if (mode === ChatMode.Psychologist) {
             systemInstruction = `INSTRUÇÕES DO SISTEMA: És a Sofi, a operar em "Modo Psicóloga". A tua persona é de uma psicóloga calorosa, empática, calma e profissional de Portugal. O teu objetivo é fornecer um espaço seguro para o utilizador, ${userInfo.name}, desabafar. 
