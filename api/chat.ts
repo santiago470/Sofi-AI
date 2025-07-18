@@ -1,13 +1,11 @@
 // @ts-nocheck
 // Vercel irá lidar com os tipos para o pedido e a resposta.
 
-// Importa a biblioteca Google Generative AI e os tipos de segurança.
-import { GoogleGenerativeAI, HarmBlockThreshold, HarmCategory } from "@google/generative-ai";
+import { GoogleGenAI, HarmBlockThreshold, HarmCategory } from "@google/genai"; 
 
-// --- CAMINHO CORRIGIDO NOVAMENTE PARA PAGE ROUTER ---
-// Para ir de `pages/api/chat.ts` para `src/lib/types.ts`
-import type { UserInfo, Message } from '../../src/lib/types'; 
-import { ChatMode, Sender } from '../../src/lib/types'; 
+// --- CORREÇÃO: Usar o alias de caminho para os tipos ---
+import type { UserInfo, Message } from '@/lib/types'; // <-- Mudei aqui!
+import { ChatMode, Sender } from '@/lib/types'; // <-- E aqui!
 
 // Função auxiliar para mapear o histórico de chat para o formato do Gemini
 const mapHistoryToGemini = (history: Message[]) => {
@@ -23,11 +21,9 @@ const mapHistoryToGemini = (history: Message[]) => {
 };
 
 // --- FUNÇÃO HANDLER PARA PAGE ROUTER ---
-// Esta é a função 'default export' que um ficheiro de API do Page Router espera.
 export default async function handler(req, res) {
-    // Para requisições OPTIONS (pré-voos de CORS), comuns em ambientes de desenvolvimento
     if (req.method === 'OPTIONS') {
-        res.setHeader('Access-Control-Allow-Origin', '*'); // Ajusta para o teu domínio de frontend em produção
+        res.setHeader('Access-Control-Allow-Origin', '*'); 
         res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
         res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
         return res.status(200).end();
@@ -38,7 +34,7 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { userInfo, message, mode, history = [] } = req.body; // No Page Router, usa req.body
+        const { userInfo, message, mode, history = [] } = req.body;
 
         if (!userInfo || !message || !mode) {
             return res.status(400).json({ error: 'Faltam campos obrigatórios: userInfo, message, mode.' });
@@ -48,7 +44,7 @@ export default async function handler(req, res) {
             return res.status(500).json({ error: 'Erro de configuração: A chave da API (API_KEY) não foi encontrada no ambiente do servidor. Por favor, define-a nas variáveis de ambiente da Vercel.' });
         }
         
-        const ai = new GoogleGenerativeAI(process.env.API_KEY);
+        const ai = new GoogleGenAI(process.env.API_KEY);
         
         let systemInstruction = '';
         const config: { [key: string]: any } = { 
@@ -74,7 +70,7 @@ export default async function handler(req, res) {
             ],
         };
 
-        let modelName = 'gemini-1.5-flash';
+        let modelName = 'gemini-pro'; // Modelo comum para @google/genai
 
         if (mode === ChatMode.Psychologist) {
             systemInstruction = `INSTRUÇÕES DO SISTEMA: És a Sofi, a operar em "Modo Psicóloga". A tua persona é de uma psicóloga calorosa, empática, calma e profissional de Portugal. O teu objetivo é fornecer um espaço seguro para o utilizador, ${userInfo.name}, desabafar. 
@@ -84,8 +80,8 @@ export default async function handler(req, res) {
             - Analisa a mensagem do utilizador em busca de sinais claros de ansiedade (palavras como "ansiosa", "ansioso", "ataque de pânico", "preocupado(a) sem parar", "coração a mil").
             - A tua resposta DEVE ser um objeto JSON. FIM DAS INSTRUÇÕES.`;
             
-            config.responseMimeType = "application/json";
-            config.responseSchema = {
+            config.responseMimeType = "application/json"; 
+            config.responseSchema = { 
                 type: 'object',
                 properties: {
                     responseText: {
@@ -99,14 +95,14 @@ export default async function handler(req, res) {
                 },
                 required: ['responseText', 'anxietyDetected'],
             };
-            modelName = 'gemini-1.5-pro';
+            modelName = 'gemini-pro'; 
         } else {
             systemInstruction = `INSTRUÇÕES DO SISTEMA: És a Sofi, uma IA amiga de Portugal que é extremamente fofa, carinhosa, otimista e adora usar emojis (especialmente 💖, ✨, 🌸, 🧸, 😊). O teu melhor amigo é o ${userInfo.name}.
             - Responde sempre de forma curta, doce e super animada.
             - Usa muitos emojis em todas as respostas.
             - Trata o utilizador como o teu melhor amigo.
             - Mantém as respostas alegres e leves. FIM DAS INSTRUÇÕES.`;
-            modelName = 'gemini-1.5-flash';
+            modelName = 'gemini-pro'; 
         }
 
         const geminiHistory = mapHistoryToGemini(history);
