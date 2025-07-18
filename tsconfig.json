@@ -9,26 +9,12 @@
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
-    "moduleResolution": "bundler", // Ou "node" se não for Next.js 14+
+    "moduleResolution": "bundler", // Para Vite no Vercel, 'bundler' ou 'node' funciona geralmente.
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "paths": {
-      "@/*": [
-        "./*"
-      ],
-      // --- ADICIONA ESTE ALIAS ---
-      "@/lib/*": [
-        "./src/lib/*" // Isto mapeia '@lib/algumaCoisa' para 'src/lib/algumaCoisa'
-      ]
-    },
-    "baseUrl": ".", // Isto define a base para os caminhos absolutos
+    "baseUrl": "." 
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
