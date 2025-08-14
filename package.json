@@ -1,0 +1,15 @@
+{
+  "name": "sofi-ia-app",
+  "version": "1.0.0",
+  "description": "Converse com a Sofi, uma IA fofa e carinhosa, pronta para ser sua amiga e alegrar seu dia com emojis e palavras gentis.",
+  "private": true,
+  "scripts": {
+    "dev": "echo \"Para desenvolvimento, use uma ferramenta como 'serve' ou a CLI da sua plataforma de alojamento (ex: vercel dev)\""
+  },
+  "dependencies": {
+    "@google/genai": "0.12.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

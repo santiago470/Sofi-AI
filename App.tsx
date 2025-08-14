@@ -517,7 +517,7 @@ const App: React.FC = () => {
       const errorMessage: Message = { id: Date.now().toString() + '-error', text: errorMessageText, sender: Sender.Sofi };
       updateCurrentMessages(prev => [...prev, errorMessage]);
       if(chatMode === ChatMode.Live) speak(errorMessageText);
-      setError(`Oh não! 🥺 Tive um probleminha. Verifica a tua chave de API e a ligação à internet.`);
+      setError("Oh não! 🥺 A ligação falhou. Por favor, tenta novamente mais tarde.");
       setIsSofiTyping(false);
     } finally {
       setIsLoading(false);
